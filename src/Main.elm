@@ -5,7 +5,8 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
-import Json.Decode exposing (Decoder, field, int, list, map3, map4, string)
+import Json.Decode exposing (Decoder, field, int, list, map3, map4, map5, string)
+import Time exposing (millisToPosix, toDay, toHour, toMinute, toMonth, toSecond, toYear, utc)
 
 
 
@@ -50,6 +51,7 @@ type alias Category =
 type alias Post =
     { id : Int
     , title : String
+    , timestamp : Int
     , permalink : String
     , categories : List Category
     }
@@ -85,6 +87,19 @@ subscriptions model =
 
 
 
+-- VIEW HELPERS
+
+
+toUtcString : Time.Posix -> String
+toUtcString timestamp =
+    let
+        dateTimeString =
+            String.fromInt (toYear utc timestamp)
+    in
+        dateTimeString
+
+
+
 -- VIEW
 
 
@@ -96,12 +111,20 @@ view model =
         ]
 
 
+viewPostDate : Post -> Html Msg
+viewPostDate post =
+    let
+        posixTimestamp =
+            millisToPosix post.timestamp
+    in
+    p [] [ text (toUtcString posixTimestamp) ]
+
+
 viewPost : Post -> Html Msg
 viewPost post =
     div []
         [ h4 []
-            [ a [ href post.permalink, target "_blank" ] [ text post.title ]
-            ]
+            [ a [ href post.permalink, target "_blank" ] [ text post.title ], viewPostDate post ]
         , div [] (List.map viewCategory post.categories)
         ]
 
@@ -117,7 +140,6 @@ viewPosts model =
         Failure ->
             div []
                 [ text "Failed to load posts."
-                , button [ onClick MorePlease ] [ text "Try Again!" ]
                 ]
 
         Loading ->
@@ -140,9 +162,10 @@ getPosts =
 
 
 postDecoder =
-    map4 Post
+    map5 Post
         (field "id" int)
         (field "title" string)
+        (field "timestamp" int)
         (field "permalink" string)
         (field "categories" (list categoryDecoder))
 
