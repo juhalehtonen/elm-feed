@@ -5,7 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
-import Json.Decode exposing (Decoder, field, int, list, map3, string)
+import Json.Decode exposing (Decoder, field, int, list, map3, map4, string)
 
 
 
@@ -40,10 +40,18 @@ init _ =
 -- UPDATE
 
 
+type alias Category =
+    { id : Int
+    , name : String
+    , permalink : String
+    }
+
+
 type alias Post =
     { id : Int
     , title : String
     , permalink : String
+    , categories : List Category
     }
 
 
@@ -91,8 +99,16 @@ view model =
 viewPost : Post -> Html Msg
 viewPost post =
     div []
-        [ h4 [] [ a [ href post.permalink, target "_blank" ] [ text post.title ] ]
+        [ h4 []
+            [ a [ href post.permalink, target "_blank" ] [ text post.title ]
+            ]
+        , div [] (List.map viewCategory post.categories)
         ]
+
+
+viewCategory : Category -> Html Msg
+viewCategory category =
+    div [] [ text category.name ]
 
 
 viewPosts : Model -> Html Msg
@@ -118,18 +134,31 @@ viewPosts model =
 getPosts : Cmd Msg
 getPosts =
     Http.get
-        { url = "https://ylva.fi/wp-json/swiss/v1/feed"
+        { url = "https://ylva.fi/wp-json/swiss/v1/feed?lang=fi"
         , expect = Http.expectJson GotPosts postListDecoder
         }
 
 
 postDecoder =
-    map3 Post
+    map4 Post
         (field "id" int)
         (field "title" string)
+        (field "permalink" string)
+        (field "categories" (list categoryDecoder))
+
+
+categoryDecoder =
+    map3 Category
+        (field "id" int)
+        (field "name" string)
         (field "permalink" string)
 
 
 postListDecoder : Decoder (List Post)
 postListDecoder =
     list postDecoder
+
+
+categoryListDecoder : Decoder (List Category)
+categoryListDecoder =
+    list categoryDecoder
