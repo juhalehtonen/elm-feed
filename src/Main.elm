@@ -157,8 +157,3 @@ categoryDecoder =
 postListDecoder : Decoder (List Post)
 postListDecoder =
     list postDecoder
-
-
-categoryListDecoder : Decoder (List Category)
-categoryListDecoder =
-    list categoryDecoder
