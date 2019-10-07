@@ -1,11 +1,11 @@
-module Main exposing (..)
+module Main exposing (Model(..), Msg(..), Post, getPosts, init, main, postDecoder, postListDecoder, subscriptions, update, view, viewPost, viewPosts)
 
 import Browser
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
-import Json.Decode exposing (Decoder, map3, field, string, int, list)
+import Json.Decode exposing (Decoder, field, int, list, map3, string)
 
 
 
@@ -13,12 +13,12 @@ import Json.Decode exposing (Decoder, map3, field, string, int, list)
 
 
 main =
-  Browser.element
-    { init = init
-    , update = update
-    , subscriptions = subscriptions
-    , view = view
-    }
+    Browser.element
+        { init = init
+        , update = update
+        , subscriptions = subscriptions
+        , view = view
+        }
 
 
 
@@ -26,18 +26,19 @@ main =
 
 
 type Model
-  = Failure
-  | Loading
-  | Success (List Post)
+    = Failure
+    | Loading
+    | Success (List Post)
 
 
-init : () -> (Model, Cmd Msg)
+init : () -> ( Model, Cmd Msg )
 init _ =
-  (Loading, getPosts)
+    ( Loading, getPosts )
 
 
 
 -- UPDATE
+
 
 type alias Post =
     { id : Int
@@ -45,24 +46,25 @@ type alias Post =
     , permalink : String
     }
 
+
 type Msg
-  = MorePlease
-  | GotPosts (Result Http.Error (List Post) )
+    = MorePlease
+    | GotPosts (Result Http.Error (List Post))
 
 
-update : Msg -> Model -> (Model, Cmd Msg)
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-  case msg of
-    MorePlease ->
-      (Loading, getPosts)
+    case msg of
+        MorePlease ->
+            ( Loading, getPosts )
 
-    GotPosts result ->
-      case result of
-        Ok posts ->
-          (Success posts, Cmd.none)
+        GotPosts result ->
+            case result of
+                Ok posts ->
+                    ( Success posts, Cmd.none )
 
-        Err _ ->
-          (Failure, Cmd.none)
+                Err _ ->
+                    ( Failure, Cmd.none )
 
 
 
@@ -71,7 +73,7 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  Sub.none
+    Sub.none
 
 
 
@@ -80,33 +82,33 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-  div []
-    [ h2 [] [ text "Posts" ]
-    , viewPosts model
-    ]
+    div []
+        [ h2 [] [ text "Posts" ]
+        , viewPosts model
+        ]
+
 
 viewPost : Post -> Html Msg
-viewPost (post) =
+viewPost post =
     div []
-        [
-         h4 [] [ a [ href post.permalink, target "_blank" ] [ text post.title ] ]
+        [ h4 [] [ a [ href post.permalink, target "_blank" ] [ text post.title ] ]
         ]
 
 
 viewPosts : Model -> Html Msg
 viewPosts model =
-  case model of
-    Failure ->
-      div []
-        [ text "Failed to load posts."
-        , button [ onClick MorePlease ] [ text "Try Again!" ]
-        ]
+    case model of
+        Failure ->
+            div []
+                [ text "Failed to load posts."
+                , button [ onClick MorePlease ] [ text "Try Again!" ]
+                ]
 
-    Loading ->
-      text "Loading..."
+        Loading ->
+            text "Loading..."
 
-    Success posts ->
-        div [] (List.map viewPost posts)
+        Success posts ->
+            div [] (List.map viewPost posts)
 
 
 
@@ -115,19 +117,19 @@ viewPosts model =
 
 getPosts : Cmd Msg
 getPosts =
-  Http.get
-    { url = "https://ylva.fi/wp-json/swiss/v1/feed"
-    , expect = Http.expectJson GotPosts postListDecoder
-    }
+    Http.get
+        { url = "https://ylva.fi/wp-json/swiss/v1/feed"
+        , expect = Http.expectJson GotPosts postListDecoder
+        }
 
 
 postDecoder =
-  map3 Post
-      (field "id" int)
-      (field "title" string)
-      (field "permalink" string)
+    map3 Post
+        (field "id" int)
+        (field "title" string)
+        (field "permalink" string)
 
 
 postListDecoder : Decoder (List Post)
 postListDecoder =
-  list postDecoder
+    list postDecoder
