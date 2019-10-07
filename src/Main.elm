@@ -5,8 +5,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
-import Json.Decode exposing (Decoder, field, int, list, map3, map4, map5, string)
-import Time exposing (millisToPosix, toDay, toHour, toMinute, toMonth, toSecond, toYear, utc)
+import Json.Decode exposing (Decoder, field, int, list, map3, map4, map5, map6, maybe, string)
 
 
 
@@ -53,6 +52,7 @@ type alias Post =
     , title : String
     , timestamp : Int
     , permalink : String
+    , featuredImage : Maybe String
     , categories : List Category
     }
 
@@ -87,19 +87,6 @@ subscriptions model =
 
 
 
--- VIEW HELPERS
-
-
-toUtcString : Time.Posix -> String
-toUtcString timestamp =
-    let
-        dateTimeString =
-            String.fromInt (toYear utc timestamp)
-    in
-        dateTimeString
-
-
-
 -- VIEW
 
 
@@ -111,21 +98,23 @@ view model =
         ]
 
 
-viewPostDate : Post -> Html Msg
-viewPostDate post =
-    let
-        posixTimestamp =
-            millisToPosix post.timestamp
-    in
-    p [] [ text (toUtcString posixTimestamp) ]
+viewPostImage : Post -> Html Msg
+viewPostImage post =
+    case post.featuredImage of
+        Nothing ->
+            text "So you gave me a post with no image"
+
+        Just val ->
+            img [ src val ] []
 
 
 viewPost : Post -> Html Msg
 viewPost post =
     div []
         [ h4 []
-            [ a [ href post.permalink, target "_blank" ] [ text post.title ], viewPostDate post ]
+            [ a [ href post.permalink, target "_blank" ] [ text post.title ] ]
         , div [] (List.map viewCategory post.categories)
+        , viewPostImage post
         ]
 
 
@@ -162,11 +151,12 @@ getPosts =
 
 
 postDecoder =
-    map5 Post
+    map6 Post
         (field "id" int)
         (field "title" string)
         (field "timestamp" int)
         (field "permalink" string)
+        (maybe (field "featuredImage" string))
         (field "categories" (list categoryDecoder))
 
 
