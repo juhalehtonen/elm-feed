@@ -93,11 +93,7 @@ filterPostsByCategory posts category =
     let
         filteredPosts = List.filter (\p -> (List.member category p.categories)) posts
     in
-        case List.head filteredPosts of
-            Nothing ->
-                []
-            Just val ->
-                filteredPosts
+        filteredPosts
 
 -- VIEW
 
