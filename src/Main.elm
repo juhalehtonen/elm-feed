@@ -88,11 +88,16 @@ subscriptions model =
 
 
 -- HELPERS
+catsFromPosts : List Post -> List Category
+catsFromPosts posts =
+    posts
+        |> List.map .categories
+        |> List.concat
+
 {-
    Given a List of Posts and a Category, return a filtered List of Posts where
    only members of Category are included.
 -}
-
 
 filterPostsByCategory : List Post -> Category -> List Post
 filterPostsByCategory posts category =
