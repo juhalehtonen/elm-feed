@@ -88,12 +88,13 @@ subscriptions model =
 
 
 -- HELPERS
+
+
 filterPostsByCategory : List Post -> Category -> List Post
 filterPostsByCategory posts category =
-    let
-        filteredPosts = List.filter (\p -> (List.member category p.categories)) posts
-    in
-        filteredPosts
+    List.filter (\p -> List.member category p.categories) posts
+
+
 
 -- VIEW
 
@@ -143,7 +144,7 @@ viewPosts model =
             text "Loading..."
 
         Success posts ->
-            div [] (List.map viewPost (filterPostsByCategory posts {id = 15, name = "Majoitus", permalink = "https://ylva.fi/category/majoitus/"}))
+            div [] (List.map viewPost (filterPostsByCategory posts { id = 15, name = "Majoitus", permalink = "https://ylva.fi/category/majoitus/" }))
 
 
 
