@@ -88,6 +88,10 @@ subscriptions model =
 
 
 -- HELPERS
+{-
+   Given a List of Posts and a Category, return a filtered List of Posts where
+   only members of Category are included.
+-}
 
 
 filterPostsByCategory : List Post -> Category -> List Post
@@ -103,6 +107,7 @@ view : Model -> Html Msg
 view model =
     div []
         [ h2 [] [ text "Posts" ]
+        , viewFilters model
         , viewPosts model
         ]
 
@@ -130,6 +135,14 @@ viewPost post =
 viewCategory : Category -> Html Msg
 viewCategory category =
     div [] [ text category.name ]
+
+
+viewFilters : Model -> Html Msg
+viewFilters model =
+    fieldset []
+        [ label [] [ input [ type_ "checkbox", value "rofl1" ] [], text "Lol1" ]
+        , label [] [ input [ type_ "checkbox", value "rofl2" ] [], text "Lol2" ]
+        ]
 
 
 viewPosts : Model -> Html Msg
