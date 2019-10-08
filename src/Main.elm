@@ -89,6 +89,8 @@ subscriptions model =
 
 
 -- HELPERS
+
+
 catsFromPosts : List Post -> List Category
 catsFromPosts posts =
     posts
@@ -96,10 +98,13 @@ catsFromPosts posts =
         |> List.concat
         |> uniqueBy (\p -> p.id)
 
+
+
 {-
    Given a List of Posts and a Category, return a filtered List of Posts where
    only members of Category are included.
 -}
+
 
 filterPostsByCategory : List Post -> Category -> List Post
 filterPostsByCategory posts category =
@@ -142,6 +147,11 @@ viewCategory : Category -> Html Msg
 viewCategory category =
     div [] [ text category.name ]
 
+
+
+{- TODO: onCheck filter model by filterPostsByCategory -}
+
+
 viewFilter : Category -> Html Msg
 viewFilter category =
     label [] [ input [ type_ "checkbox", value (String.fromInt category.id) ] [], text category.name ]
@@ -164,10 +174,11 @@ viewPosts model =
             text "Loading..."
 
         Success posts ->
-            div [] [
-              div [] [ viewFilters posts ]
-              , div [] (List.map viewPost (filterPostsByCategory posts { id = 15, name = "Majoitus", permalink = "https://ylva.fi/category/majoitus/" }))
-            ]
+            div []
+                [ div [] [ viewFilters posts ]
+                , div [] (List.map viewPost (filterPostsByCategory posts { id = 15, name = "Majoitus", permalink = "https://ylva.fi/category/majoitus/" }))
+                ]
+
 
 
 -- HTTP
