@@ -87,6 +87,18 @@ subscriptions model =
 
 
 
+-- HELPERS
+filterPostsByCategory : List Post -> Category -> List Post
+filterPostsByCategory posts category =
+    let
+        filteredPosts = List.filter (\p -> (List.member category p.categories)) posts
+    in
+        case List.head filteredPosts of
+            Nothing ->
+                []
+            Just val ->
+                filteredPosts
+
 -- VIEW
 
 
@@ -135,7 +147,7 @@ viewPosts model =
             text "Loading..."
 
         Success posts ->
-            div [] (List.map viewPost posts)
+            div [] (List.map viewPost (filterPostsByCategory posts {id = 15, name = "Majoitus", permalink = "https://ylva.fi/category/majoitus/"}))
 
 
 
