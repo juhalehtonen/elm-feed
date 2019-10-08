@@ -36,12 +36,13 @@ type alias Model =
     { posts : List Post
     , filteredPosts : List Post
     , status : Status
+    , categories : List Category
     }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { posts = [], filteredPosts = [], status = Loading }, getPosts )
+    ( { posts = [], filteredPosts = [], categories = [], status = Loading }, getPosts )
 
 
 
@@ -79,7 +80,7 @@ update msg model =
         GotPosts result ->
             case result of
                 Ok posts ->
-                    ( { status = Success, posts = posts, filteredPosts = posts }, Cmd.none )
+                    ( { model | status = Success, posts = posts, filteredPosts = posts, categories = catsFromPosts posts }, Cmd.none )
 
                 Err _ ->
                     ( { model | status = Failure }, Cmd.none )
