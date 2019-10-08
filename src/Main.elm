@@ -150,6 +150,10 @@ getPosts =
         }
 
 
+
+-- JSON
+
+
 postDecoder =
     map6 Post
         (field "id" int)
