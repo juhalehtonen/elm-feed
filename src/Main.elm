@@ -1,5 +1,3 @@
-module Main exposing (Model(..), Msg(..), Post, getPosts, init, main, postDecoder, postListDecoder, subscriptions, update, view, viewPost, viewPosts)
-
 import Browser
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -26,15 +24,21 @@ main =
 -- MODEL
 
 
-type Model
+type Status
     = Failure
     | Loading
-    | Success (List Post)
+    | Success
 
+
+type alias Model
+    = { posts: List Post
+      , filteredPosts: List Post
+      , status: Status
+    }
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Loading, getPosts )
+    ( {posts=[], filteredPosts=[], status=Loading}, getPosts )
 
 
 
@@ -59,23 +63,23 @@ type alias Post =
 
 
 type Msg
-    = MorePlease
-    | GotPosts (Result Http.Error (List Post))
+    = GotPosts (Result Http.Error (List Post))
+    | FilterPosts Category
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        MorePlease ->
-            ( Loading, getPosts )
+        FilterPosts category ->
+            ( {model | filteredPosts=(filterPostsByCategory model.posts category)}, Cmd.none )
 
         GotPosts result ->
             case result of
                 Ok posts ->
-                    ( Success posts, Cmd.none )
+                    ( {status=Success, posts=posts, filteredPosts=posts}, Cmd.none )
 
                 Err _ ->
-                    ( Failure, Cmd.none )
+                    ( {model | status=Failure}, Cmd.none )
 
 
 
@@ -149,8 +153,6 @@ viewCategory category =
 
 
 
-{- TODO: onCheck filter model by filterPostsByCategory -}
-
 
 viewFilter : Category -> Html Msg
 viewFilter category =
@@ -164,7 +166,7 @@ viewFilters posts =
 
 viewPosts : Model -> Html Msg
 viewPosts model =
-    case model of
+    case model.status of
         Failure ->
             div []
                 [ text "Failed to load posts."
@@ -173,10 +175,10 @@ viewPosts model =
         Loading ->
             text "Loading..."
 
-        Success posts ->
+        Success ->
             div []
-                [ div [] [ viewFilters posts ]
-                , div [] (List.map viewPost (filterPostsByCategory posts { id = 15, name = "Majoitus", permalink = "https://ylva.fi/category/majoitus/" }))
+                [ div [] [ viewFilters model.posts ]
+                , div [] (List.map viewPost (filterPostsByCategory model.filteredPosts { id = 15, name = "Majoitus", permalink = "https://ylva.fi/category/majoitus/" }))
                 ]
 
 
