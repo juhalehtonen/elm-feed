@@ -114,7 +114,6 @@ view : Model -> Html Msg
 view model =
     div []
         [ h2 [] [ text "Posts" ]
-        , viewFilters model
         , viewPosts model
         ]
 
@@ -143,13 +142,14 @@ viewCategory : Category -> Html Msg
 viewCategory category =
     div [] [ text category.name ]
 
+viewFilter : Category -> Html Msg
+viewFilter category =
+    label [] [ input [ type_ "checkbox", value (String.fromInt category.id) ] [], text category.name ]
 
-viewFilters : Model -> Html Msg
-viewFilters model =
-    fieldset []
-        [ label [] [ input [ type_ "checkbox", value "rofl1" ] [], text "Lol1" ]
-        , label [] [ input [ type_ "checkbox", value "rofl2" ] [], text "Lol2" ]
-        ]
+
+viewFilters : List Post -> Html Msg
+viewFilters posts =
+    fieldset [] (List.map viewFilter (catsFromPosts posts))
 
 
 viewPosts : Model -> Html Msg
@@ -164,8 +164,10 @@ viewPosts model =
             text "Loading..."
 
         Success posts ->
-            div [] (List.map viewPost (filterPostsByCategory posts { id = 15, name = "Majoitus", permalink = "https://ylva.fi/category/majoitus/" }))
-
+            div [] [
+              div [] [ viewFilters posts ]
+              , div [] (List.map viewPost (filterPostsByCategory posts { id = 15, name = "Majoitus", permalink = "https://ylva.fi/category/majoitus/" }))
+            ]
 
 
 -- HTTP
