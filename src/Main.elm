@@ -6,6 +6,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
 import Json.Decode exposing (Decoder, field, int, list, map3, map4, map5, map6, maybe, string)
+import List.Extra exposing (unique, uniqueBy)
 
 
 
@@ -93,6 +94,7 @@ catsFromPosts posts =
     posts
         |> List.map .categories
         |> List.concat
+        |> uniqueBy (\p -> p.id)
 
 {-
    Given a List of Posts and a Category, return a filtered List of Posts where
