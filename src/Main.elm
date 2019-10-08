@@ -1,3 +1,5 @@
+module Main exposing (Category, Model, Msg(..), Post, Status(..), categoryDecoder, catsFromPosts, filterPostsByCategory, getPosts, init, main, postDecoder, postListDecoder, subscriptions, update, view, viewCategory, viewFilter, viewFilters, viewPost, viewPostImage, viewPosts)
+
 import Browser
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -30,15 +32,16 @@ type Status
     | Success
 
 
-type alias Model
-    = { posts: List Post
-      , filteredPosts: List Post
-      , status: Status
+type alias Model =
+    { posts : List Post
+    , filteredPosts : List Post
+    , status : Status
     }
+
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( {posts=[], filteredPosts=[], status=Loading}, getPosts )
+    ( { posts = [], filteredPosts = [], status = Loading }, getPosts )
 
 
 
@@ -71,15 +74,15 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         FilterPosts category ->
-            ( {model | filteredPosts=(filterPostsByCategory model.posts category)}, Cmd.none )
+            ( { model | filteredPosts = filterPostsByCategory model.posts category }, Cmd.none )
 
         GotPosts result ->
             case result of
                 Ok posts ->
-                    ( {status=Success, posts=posts, filteredPosts=posts}, Cmd.none )
+                    ( { status = Success, posts = posts, filteredPosts = posts }, Cmd.none )
 
                 Err _ ->
-                    ( {model | status=Failure}, Cmd.none )
+                    ( { model | status = Failure }, Cmd.none )
 
 
 
@@ -131,7 +134,7 @@ viewPostImage : Post -> Html Msg
 viewPostImage post =
     case post.featuredImage of
         Nothing ->
-            text "So you gave me a post with no image"
+            p [] [text "post with no image"]
 
         Just val ->
             img [ src val ] []
@@ -152,11 +155,9 @@ viewCategory category =
     div [] [ text category.name ]
 
 
-
-
 viewFilter : Category -> Html Msg
 viewFilter category =
-    label [] [ input [ type_ "checkbox", value (String.fromInt category.id) ] [], text category.name ]
+    label [] [ input [ type_ "checkbox", onClick (FilterPosts category)] [], text category.name ]
 
 
 viewFilters : List Post -> Html Msg
@@ -178,7 +179,7 @@ viewPosts model =
         Success ->
             div []
                 [ div [] [ viewFilters model.posts ]
-                , div [] (List.map viewPost (filterPostsByCategory model.filteredPosts { id = 15, name = "Majoitus", permalink = "https://ylva.fi/category/majoitus/" }))
+                , div [] (List.map viewPost model.filteredPosts)
                 ]
 
 
