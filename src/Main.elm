@@ -76,16 +76,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         FilterPosts category checked ->
-            -- TODO: Clean up this mess
-            let
-                catAlreadyFiltered =
-                    List.Extra.find (\c -> c == category) model.filteredCategories
-            in
-            if checked == True then
-                ( { model | filteredPosts = filterPostsByCategories model.posts (category :: model.filteredCategories), filteredCategories = category :: model.filteredCategories }, Cmd.none )
-
-            else
-                ( { model | filteredPosts = filterPostsByCategories model.posts (List.Extra.remove category model.filteredCategories), filteredCategories = List.Extra.remove category model.filteredCategories }, Cmd.none )
+            ( { model | filteredPosts = producePostsToShow model category checked, filteredCategories = produceCategoriesToFilter model category checked }, Cmd.none )
 
         GotPosts result ->
             case result of
@@ -107,6 +98,48 @@ subscriptions model =
 
 
 -- HELPERS
+{-
+   Handling for categories that are filters handled here.
+   TODO : Try to make it so that we don't have to calculate this stuff twice to get both cats and posts
+-}
+
+
+produceCategoriesToFilter : Model -> Category -> Bool -> List Category
+produceCategoriesToFilter model category filterChecked =
+    case filterChecked of
+        True ->
+            category :: model.filteredCategories
+
+        False ->
+            List.Extra.remove category model.filteredCategories
+
+
+
+{-
+   The main filtering logic for posts resides here.
+-}
+
+
+producePostsToShow : Model -> Category -> Bool -> List Post
+producePostsToShow model category filterChecked =
+    case filterChecked of
+        -- Filter was checked so a new filter was added in place
+        True ->
+            filterPostsByCategories model.posts (category :: model.filteredCategories)
+
+        False ->
+            if List.length model.filteredCategories == 1 then
+                -- If we have nothing selected, then return everything
+                -- This is a bit stupid ATM, but we are essentially checking if there was only
+                -- 1 item in the model. If that gets removed, nothing remains.
+                model.posts
+
+            else
+                -- If we have at least something selected, filter
+                filterPostsByCategories model.posts (List.Extra.remove category model.filteredCategories)
+
+
+
 {-
    Given a List of Posts, extract a List of unique Categories based on their id.
    This is typically only run once, at the initialization of this app in order to
