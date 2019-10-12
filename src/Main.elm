@@ -76,6 +76,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         FilterPosts category checked ->
+            -- TODO: Clean up this mess
             let
                 catAlreadyFiltered =
                     List.Extra.find (\c -> c == category) model.filteredCategories
