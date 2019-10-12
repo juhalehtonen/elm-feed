@@ -37,12 +37,13 @@ type alias Model =
     , filteredPosts : List Post
     , status : Status
     , categories : List Category
+    , filteredCategories : List Category
     }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { posts = [], filteredPosts = [], categories = [], status = Loading }, getPosts )
+    ( { posts = [], filteredPosts = [], categories = [], filteredCategories = [], status = Loading }, getPosts )
 
 
 
@@ -75,6 +76,9 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         FilterPosts category ->
+            -- TODO: Instead of filtering posts by a single category, we should instead
+            -- add/remove a category from the list of filteredCategories and then display posts
+            -- in view based on that.
             ( { model | filteredPosts = filterPostsByCategory model.posts category }, Cmd.none )
 
         GotPosts result ->
@@ -97,6 +101,9 @@ subscriptions model =
 
 
 -- HELPERS
+{-
+   Given a List of Posts, extract a List of unique Categories based on their id.
+-}
 
 
 catsFromPosts : List Post -> List Category
@@ -105,6 +112,19 @@ catsFromPosts posts =
         |> List.map .categories
         |> List.concat
         |> uniqueBy (\p -> p.id)
+
+
+
+{-
+   Given a Post and a List of Categories, determine if the Post belongs
+   to any of the Categories.
+-}
+
+
+isPostInCats : Post -> List Category -> Bool
+isPostInCats post categories =
+    post.categories
+        |> List.any (\c -> List.member c categories)
 
 
 
@@ -135,7 +155,7 @@ viewPostImage : Post -> Html Msg
 viewPostImage post =
     case post.featuredImage of
         Nothing ->
-            p [] [text "post with no image"]
+            p [] [ text "post with no image" ]
 
         Just val ->
             img [ src val ] []
@@ -158,7 +178,7 @@ viewCategory category =
 
 viewFilter : Category -> Html Msg
 viewFilter category =
-    label [] [ input [ type_ "checkbox", onClick (FilterPosts category)] [], text category.name ]
+    label [] [ input [ type_ "checkbox", onClick (FilterPosts category) ] [], text category.name ]
 
 
 viewFilters : List Post -> Html Msg
