@@ -6,7 +6,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Http
 import Json.Decode exposing (Decoder, field, int, list, map3, map4, map5, map6, maybe, string)
-import List.Extra exposing (unique, uniqueBy)
+import List.Extra exposing (find, unique, uniqueBy)
 
 
 
@@ -69,17 +69,22 @@ type alias Post =
 
 type Msg
     = GotPosts (Result Http.Error (List Post))
-    | FilterPosts Category
+    | FilterPosts Category Bool
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        FilterPosts category ->
-            -- TODO: Instead of filtering posts by a single category, we should instead
-            -- add/remove a category from the list of filteredCategories and then display posts
-            -- in view based on that.
-            ( { model | filteredPosts = filterPostsByCategory model.posts category }, Cmd.none )
+        FilterPosts category checked ->
+            let
+                catAlreadyFiltered =
+                    List.Extra.find (\c -> c == category) model.filteredCategories
+            in
+            if checked == True then
+                ( { model | filteredPosts = filterPostsByCategories model.posts (category :: model.filteredCategories), filteredCategories = category :: model.filteredCategories }, Cmd.none )
+
+            else
+                ( { model | filteredPosts = filterPostsByCategories model.posts (List.Extra.remove category model.filteredCategories), filteredCategories = List.Extra.remove category model.filteredCategories }, Cmd.none )
 
         GotPosts result ->
             case result of
@@ -103,6 +108,8 @@ subscriptions model =
 -- HELPERS
 {-
    Given a List of Posts, extract a List of unique Categories based on their id.
+   This is typically only run once, at the initialization of this app in order to
+   create a list of Categories to filter content by.
 -}
 
 
@@ -137,6 +144,19 @@ isPostInCats post categories =
 filterPostsByCategory : List Post -> Category -> List Post
 filterPostsByCategory posts category =
     List.filter (\p -> List.member category p.categories) posts
+
+
+
+{-
+   Given a List of Posts and a List of Categories, return a List of Posts
+   that belong to any of the said Categories.
+-}
+
+
+filterPostsByCategories : List Post -> List Category -> List Post
+filterPostsByCategories posts categories =
+    posts
+        |> List.filter (\post -> isPostInCats post categories)
 
 
 
@@ -178,7 +198,7 @@ viewCategory category =
 
 viewFilter : Category -> Html Msg
 viewFilter category =
-    label [] [ input [ type_ "checkbox", onClick (FilterPosts category) ] [], text category.name ]
+    label [] [ input [ type_ "checkbox", onCheck (FilterPosts category) ] [], text category.name ]
 
 
 viewFilters : List Post -> Html Msg
